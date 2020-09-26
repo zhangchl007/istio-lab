@@ -75,7 +75,7 @@ deploy Red Hat Service Mesh and the example app: bookinfo
 
 enable mtls for bookinfo app
 
-        ansible-playbook -i hosts deploy-mtls-site.yaml
+	ansible-playbook -i hosts deploy-mtls-site.yaml
 
 mtls verification 
 ```
@@ -90,6 +90,11 @@ istioctl -n $ISTIO_NS -i $ISTIO_NS authn tls-check ${ISTIO_INGRESSGATEWAY_POD} p
 istioctl -n $ISTIO_NS -i $ISTIO_NS authn tls-check ${ISTIO_INGRESSGATEWAY_POD} reviews.$APP_NS.svc.cluster.local
 istioctl -n $ISTIO_NS -i $ISTIO_NS authn tls-check ${ISTIO_INGRESSGATEWAY_POD} ratings.$APP_NS.svc.cluster.local
 istioctl -n $ISTIO_NS -i $ISTIO_NS authn tls-check ${ISTIO_INGRESSGATEWAY_POD} details.$APP_NS.svc.cluster.local
+
+```
+Istio testing 
+
+```
 
 ```
 # istio-lab

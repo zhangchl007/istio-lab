@@ -5,7 +5,6 @@
 - hosts: istio-client
 
   roles:
-  - istio_deploy
-  - bookinfo_deploy
+  - istio_test/
   tags:
   - istio-system

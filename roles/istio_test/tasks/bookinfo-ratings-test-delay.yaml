@@ -1,0 +1,30 @@
+--- 
+- name: process istio rating delay traffic testing template
+  template:
+    src: bookinfo-service-route.yaml.j2
+    dest: "/tmp/bookinfo-service-route.yaml"
+
+- name: create the virtualservice rule for  rating delay traffic testing
+  command: oc apply -f /tmp/bookinfo-service-route.yaml -n {{ istio_ns }}
+  register: oc_res
+- debug: var=oc_res.stdout_lines
+
+- name: perform rating delay traffic testing
+  command: oc apply -f /tmp/bookinfo-service-route.yaml -n {{ istio_ns }}
+  register: oc_res
+- debug: var=oc_res.stdout_lines
+
+- name: find out istio the temp yaml files
+  find:
+    paths: /tmp
+    file_type: file
+    patterns: '*.yaml'
+  register: wildcard_files_to_delete
+
+- name: delete istio the temp yaml files
+  file:
+      path: "{{ item.path }}"
+      state: absent
+  with_items: "{{ wildcard_files_to_delete.files }}"
+  register: oc_res
+- debug: var=oc_res.stdout_lines

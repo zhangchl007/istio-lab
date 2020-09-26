@@ -5,11 +5,11 @@ metadata:
   annotations:
     openshift.io/host.generated: "true"
   labels:
-    app: productpage
-  name: productpage-service-gateway
+    app: bookinfo
+  name: bookinfo-service-gateway
   namespace: {{ istio_ns }}
 spec:
-  host: productpage-service.{{ apps_subdomain }}
+  host: bookinfo-service.{{ apps_subdomain }}
   port:
     targetPort: https
   tls:
