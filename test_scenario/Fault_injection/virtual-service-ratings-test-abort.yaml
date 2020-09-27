@@ -2,7 +2,6 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: ratings
-  namespace: {{ istio_ns }}
 spec:
   hosts:
   - ratings
@@ -12,10 +11,10 @@ spec:
         end-user:
           exact: jason
     fault:
-      delay:
+      abort:
         percentage:
           value: 100.0
-        fixedDelay: 7s
+        httpStatus: 502
     route:
     - destination:
         host: ratings
