@@ -11,7 +11,7 @@ export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressga
 export TCP_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="tcp")].port}')
 export INGRESS_PORT=$(oc get route -n istio-system istio-ingressgateway -o jsonpath='{.items[*]}{.spec.port.targetPort}')
 
-# istio gateway acess
+# istio gateway access
 export GATEWAY_URL=$INGRESS_HOST
 curl -s "http://${GATEWAY_URL}/productpage" | grep -o "<title>.*</title>"
 
