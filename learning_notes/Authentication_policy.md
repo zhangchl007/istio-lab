@@ -7,7 +7,7 @@ The v1beta1 policy is not backward compatible and requires a one time conversion
 - mutual TLS authentication
 - sso integretion
 
-# Authorization
+# Scenario Setup
 
 ```
 # case setup
@@ -353,15 +353,117 @@ kubectl -n legacy delete destinationrule httpbin
 kubectl delete ns foo bar legacy
 
 ```
+
 # Keycloak/jwt integrition 
 
 ```
-#  
+# Keycloak setup
 
+# Create a security realm
+
+# Create istio client id
+
+# Create a role
+
+# Create a user to generate token
+
+# Assign the user to role
+
+#  End-user authentication with jwt token
+
+ kubectl apply -n foo -f - <<EOF
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: "jwt-keycloak-mtls"
+spec:
+  targets:
+    - name: httpbin
+  peers:
+    - mtls: {}
+  origins:
+  - jwt:
+      audiences:
+        - istio
+      issuer: "https://sso.ocp4.example.com/auth/realms/istio"
+      jwksUri: "https://sso.apps.ocp4.example.com/auth/realms/istio/protocol/openid-connect/certs"
+  principalBinding: USE_ORIGIN
+EOF
+
+# Call api for a valid token
+export INGRESS_ROUTE=$(oc get route -n istio-system istio-ingressgateway -o jsonpath='{.items[*]}{.spec.host}')
+export TOKEN=$(curl -sk -d "username=test&password=test123&grant_type=password&client_id=istio&client_secret=2a2dcc91-4637-47f8-96cf-6a7eb7125613"   https://sso.apps.ocp4.example.com/auth/realms/istio/protocol/openid-connect/token   | jq  ".access_token")
+
+curl $INGRESS_ROUTE/headers -s -o /dev/null -w "%{http_code}\n" --header "Authorization: Bearer $TOKEN"
+
+kubectl exec $(kubectl get pod -l app=sleep -n foo -o jsonpath={.items..metadata.name}) -c sleep -n foo -- curl http://httpbin.foo:8000/ip -s -o /dev/null -w "%{http_code}\n"
+
+# Configure groups-based authorization
+
+ kubectl apply -n foo -f - <<EOF
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+spec:
+  {}
+EOF
+
+# allows users in role: users to access it with GET method:
+cat <<EOF | kubectl apply -n foo -f -
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "httpbin-viewer"
+spec:
+  selector:
+    matchLabels:
+      app: httpbin
+  rules:
+  - to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/ip"]
+    when:
+    - key: request.auth.claims[preferred_username]
+      values: ["test"]
+EOF
+
+# Authorization Policy
+
+ curl $INGRESS_ROUTE/headers -s -o /dev/null -w "%{http_code}\n" --header "Authorization: Bearer $TOKEN"
+403
+ curl $INGRESS_ROUTE/ip -s -o /dev/null -w "%{http_code}\n" --header "Authorization: Bearer $TOKEN"
+200
+
+# troubleshooting for certification
+
+# Download the wildcard certificate of your OpenShift cluster with the following command:
+
+openssl s_client \
+  -showcerts \
+  -servername sso.ocp4.example.com \
+  -connect sso.ocp4.example.com:443 </dev/null 2>/dev/null \
+  | openssl x509 -outform PEM >openshift-wildcard.pem
+
+# Create a secret with the certificate. The filename in the secret has to be extra.pem:
+
+oc -n istio-system create secret generic openshift-wildcard \
+--from-file=extra.pem=openshift-wildcard.pem
+
+
+# mount the volume to  the Istio Pilot pod:
+
+oc -n istio-system set volumes deployment/istio-pilot \
+  --add \
+  --name=extracacerts \
+  --mount-path=/cacerts \
+  --secret-name=openshift-wildcard \
+  --containers=discovery
 
 ```
 
-# Mirroring
+# 
 
 ```
 # Creating a default routing policy
@@ -386,7 +488,5 @@ kubectl exec "${SLEEP_POD}" -c sleep -- curl -s http://httpbin:8000/headers
  kubectl exec "${SLEEP_POD}" -c sleep -- curl -s http://httpbin:8000/headers
  kubectl logs "$V1_POD" -c httpbin
  kubectl logs "$V2_POD" -c httpbin
-
-
 
 ```

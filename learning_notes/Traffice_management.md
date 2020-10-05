@@ -21,7 +21,6 @@ export GATEWAY_URL=$INGRESS_HOST
 curl -s "http://${GATEWAY_URL}/productpage" | grep -o "<title>.*</title>"
 
 ```
-<<<<<<< HEAD
 # Circuit Breaking
 ```
 # perform circuit breaking testing
