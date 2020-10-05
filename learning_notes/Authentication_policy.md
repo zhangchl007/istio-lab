@@ -353,8 +353,7 @@ kubectl -n legacy delete destinationrule httpbin
 kubectl delete ns foo bar legacy
 
 ```
-
-# Keycloak/jwt integrition 
+# Keycloak/JWT Integretion
 
 ```
 # Keycloak setup
@@ -460,33 +459,5 @@ oc -n istio-system set volumes deployment/istio-pilot \
   --mount-path=/cacerts \
   --secret-name=openshift-wildcard \
   --containers=discovery
-
-```
-
-# 
-
-```
-# Creating a default routing policy
-1. Create a default route rule to route all traffic to v1 of the service:
-
-2. Send some traffic to the service:
-export SLEEP_POD=$(kubectl get pod -l app=sleep -o jsonpath={.items..metadata.name})
-kubectl exec "${SLEEP_POD}" -c sleep -- curl -s http://httpbin:8000/headers 
-
-3. Check the logs for v1 and v2 of the httpbin pods. You should see access log entries for v1 and none for v2:
- export V1_POD=$(kubectl get pod -l app=httpbin,version=v1 -o jsonpath={.items..metadata.name})
- kubectl logs "$V1_POD" -c httpbin
-
- export V2_POD=$(kubectl get pod -l app=httpbin,version=v2 -o jsonpath={.items..metadata.name})
- kubectl logs "$V2_POD" -c httpbin
-
-# Mirroring traffic to v2
-1. Change the route rule to mirror traffic to v2:
-
-2. Send in traffic:
-
- kubectl exec "${SLEEP_POD}" -c sleep -- curl -s http://httpbin:8000/headers
- kubectl logs "$V1_POD" -c httpbin
- kubectl logs "$V2_POD" -c httpbin
 
 ```
